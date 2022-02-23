@@ -229,4 +229,4 @@ def search_page():
                             searchquery=query)
 
 if __name__ == '__main__':
-    app.run(debug=True, host="18.219.171.208", port=5000)
+    app.run(debug=True, host="172.31.28.76", port=5000)
