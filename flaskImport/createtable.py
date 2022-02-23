@@ -27,7 +27,7 @@ DB_USERNAME = 'admin'
 DB_PASSWORD = 'adminpass'
 DB_NAME = 'photogallerydb'
 
-conn = MySQLdb.connect(host = "x422-database.cm4jqnr18t4s.us-east-2.rds.amazonaws.com",
+conn = MySQLdb.connect(host = "mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amazonaws.com",
                         user = DB_USERNAME,
                         passwd = DB_PASSWORD,
                         db = DB_NAME, 
