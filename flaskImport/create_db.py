@@ -26,9 +26,9 @@ import boto3
 from time import sleep
 
 
-AWS_KEY="<enter>"
-AWS_SECRET="<enter>"
-REGION="us-east-1"
+AWS_KEY="AKIAVCQ6IU4HCDJMHLWV"
+AWS_SECRET="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"
+REGION="us-east-2"
 
 INSTANCE_TYPE="db.t2.micro"
 ID = "MySQL-db-instance"
