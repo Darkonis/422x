@@ -37,14 +37,14 @@ app = Flask(__name__, static_url_path="")
 
 UPLOAD_FOLDER = os.path.join(app.root_path,'static','media')
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
-BASE_URL="http://localhost:5000/media/"
-AWS_ACCESS_KEY="<enter>"
-AWS_SECRET_KEY="<enter>"
-REGION="us-east-1"
-BUCKET_NAME="<enter>"
+BASE_URL="18.219.171.208"
+AWS_ACCESS_KEY="AKIAVCQ6IU4HCDJMHLWV"
+AWS_SECRET_KEY="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"
+REGION="us-east-2"
+BUCKET_NAME="422photobucket"
 DB_HOSTNAME="photogallerydb.abc.us-east-1.rds.amazonaws.com"
-DB_USERNAME = 'root'
-DB_PASSWORD = 'password'
+DB_USERNAME = 'admin'
+DB_PASSWORD = 'adminpass'
 DB_NAME = 'photogallerydb'
 
 
