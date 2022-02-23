@@ -38,7 +38,7 @@ DB_PORT = 3306
 DB_SIZE = 5
 DB_ENGINE = 'mysql'
 DB_NAME = 'photogallerydb'
-SECGROUP_ID="sg-1f25617b"
+SECGROUP_ID="sg-0f79c74d337dcc55a"
 
 print "Connecting to RDS"
 
