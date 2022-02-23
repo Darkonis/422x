@@ -23,11 +23,11 @@ SOFTWARE.
 '''
 
 import MySQLdb
-DB_USERNAME = 'root'
-DB_PASSWORD = 'password'
+DB_USERNAME = 'admin'
+DB_PASSWORD = 'adminpass'
 DB_NAME = 'photogallerydb'
 
-conn = MySQLdb.connect(host = "dbendpoint.us-east-1.rds.amazonaws.com",
+conn = MySQLdb.connect(host = "x422-database.cm4jqnr18t4s.us-east-2.rds.amazonaws.com",
                         user = DB_USERNAME,
                         passwd = DB_PASSWORD,
                         db = DB_NAME, 
