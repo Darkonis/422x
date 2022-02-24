@@ -37,12 +37,12 @@ app = Flask(__name__, static_url_path="")
 
 UPLOAD_FOLDER = os.path.join(app.root_path,'static','media')
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
-BASE_URL="18.219.171.208"
+BASE_URL="www.r4ndo22.net"
 AWS_ACCESS_KEY="AKIAVCQ6IU4HCDJMHLWV"
 AWS_SECRET_KEY="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"
 REGION="us-east-2"
 BUCKET_NAME="422photobucket"
-DB_HOSTNAME="photogallerydb.abc.us-east-1.rds.amazonaws.com"
+DB_HOSTNAME="mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amazonaws.com"
 DB_USERNAME = 'admin'
 DB_PASSWORD = 'adminpass'
 DB_NAME = 'photogallerydb'
@@ -229,4 +229,4 @@ def search_page():
                             searchquery=query)
 
 if __name__ == '__main__':
-    app.run(debug=True, host="172.31.28.76", port=5000)
+    app.run(debug=True, host="172.31.28.76", port=5001)
