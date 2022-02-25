@@ -177,6 +177,7 @@ def login_page():
         if password == '' | username == '':
             ##Stop here
             print("No password")
+            return
 
         conn = MySQLdb.connect (host = DB_HOSTNAME,
                         user = DB_USERNAME,
@@ -184,10 +185,18 @@ def login_page():
                         db = DB_NAME, 
         port = 3306)
         cursor = conn.cursor ()
-        statement = ## Get username and password from db. Compare username. Compare Password. If neither match, mistake.
+        statement = "SELECT Password FROM photogallerydb.User \
+                    WHERE Username="+username+";"
+        ## Get username and password from db. Compare username. Compare Password. If neither match, mistake.
         print statement
         result = cursor.execute(statement)
-
+        
+        for item in result:
+            if item[0] != password:
+                print("Password incorrect")
+                return
+        
+        
         conn.commit()
         conn.close()
         ## If no errors set CUR_USER to username
@@ -208,10 +217,12 @@ def register_page():
 
         if password == '' | confirm == '' | username == '':
             print("Missing field")
+            return
 
         if password != confirm:
             ##Error handling
             print("Error")
+            return
         else:
             conn = MySQLdb.connect (host = DB_HOSTNAME,
                         user = DB_USERNAME,
@@ -219,11 +230,24 @@ def register_page():
                         db = DB_NAME, 
             port = 3306)
             cursor = conn.cursor()
-            statement = ##Get username from DB. If successful, then username is taken already
+            statement = "SELECT * FROM photogallerydb.User \
+                    WHERE Username="+username+";"
+            ##Get username from DB. If successful, then username is taken already
             print statement
             result = cursor.execute(statement)
+            
+            for item in result:
+                print("Username has already taken")
+                return
+            
             ##If username is not taken
-            statement = ##Post username and password to table
+            statement = "INSERT INTO photogallerydb.User \
+                            (Username,Password) \
+                            VALUES ("+\
+                            "'"+username+"', '"+\
+                            password+"', '"+\
+                            description+"');"
+            ##Post username and password to table
             print statement
             result = cursor.execute(statement)
 
