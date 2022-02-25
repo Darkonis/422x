@@ -191,11 +191,17 @@ def login_page():
         print statement
         result = cursor.execute(statement)
         
-        for item in result:
-            if item[0] != password:
-                print("Password incorrect")
-                return
+        success = False
         
+        for item in result:
+            success = True
+            if item[0] != password:
+                success = False
+                break
+        
+        if !success:
+            print("Username or Password incorrect")
+            return
         
         conn.commit()
         conn.close()
