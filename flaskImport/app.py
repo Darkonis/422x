@@ -110,7 +110,7 @@ def home_page():
         photo['Description'] = item[3]
         photo['Tags'] = item[4]
         photo['URL'] = item[5]
-        photo['User'] = item[6]
+        photo['User'] = item[6]    ##Remove if needed
         items.append(photo)
     conn.close()        
     print items
@@ -156,7 +156,7 @@ def add_photo():
                             uploadedFileURL+"', '"+\
                             CUR_USER+"', '"+\
                             json.dumps(ExifData)+"');"
-            
+                ##Remove CUR_USER above if needed
                 print statement
                 result = cursor.execute(statement)
                 conn.commit()
@@ -260,7 +260,7 @@ def view_photo(photoID):
         photo['Description'] = item[3]
         photo['Tags'] = item[4]
         photo['URL'] = item[5]
-        photo['User'] = item[6]
+        photo['User'] = item[6]  ##Remove if needed
         photo['ExifData']=json.loads(item[6])
         items.append(photo)
     conn.close()        
@@ -299,7 +299,7 @@ def search_page():
         photo['Description'] = item[3]
         photo['Tags'] = item[4]
         photo['URL'] = item[5]
-        photo['User'] = item[6]
+        photo['User'] = item[6]  ##Remove if needed
         photo['ExifData']=item[6]
         items.append(photo)
     conn.close()        
