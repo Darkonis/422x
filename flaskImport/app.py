@@ -115,7 +115,16 @@ def home_page():
         items.append(photo)
     conn.close()        
     print items
-    return render_template('index.html', photos=items)
+
+    display = "display: block;"
+    if CUR_USER == '':
+        display = "display: none;"
+    return render_template('index.html', photos=items, d=display)
+
+@app.route('/logout', methods=['GET', 'POST'])
+def logout():
+    CUR_USER = '';
+    return redirect('/')
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_photo():
