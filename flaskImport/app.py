@@ -46,6 +46,7 @@ DB_HOSTNAME="mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amazonaws.com"
 DB_USERNAME = 'admin'
 DB_PASSWORD = 'adminpass'
 DB_NAME = 'photogallerydb'
+CUR_USER = ''
 
 
 def allowed_file(filename):
@@ -87,6 +88,8 @@ def s3uploading(filename, filenameWithPath):
     return "http://"+BUCKET_NAME+\
             ".s3-website-us-east-2.amazonaws.com/"+ path_filename 
 
+
+
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
     conn = MySQLdb.connect (host = DB_HOSTNAME,
@@ -107,6 +110,7 @@ def home_page():
         photo['Description'] = item[3]
         photo['Tags'] = item[4]
         photo['URL'] = item[5]
+        photo['User'] = item[6]    ##Remove if needed
         items.append(photo)
     conn.close()        
     print items
@@ -114,51 +118,161 @@ def home_page():
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_photo():
-    if request.method == 'POST':    
-        uploadedFileURL=''
-        file = request.files['imagefile']
-        title = request.form['title']
-        tags = request.form['tags']
-        description = request.form['description']
+    if CUR_USER != '':
+        if request.method == 'POST':    
+            uploadedFileURL=''
+            file = request.files['imagefile']
+            title = request.form['title']
+            tags = request.form['tags']
+            description = request.form['description']
 
-        print title,tags,description
-        if file and allowed_file(file.filename):
-            filename = file.filename
-            filenameWithPath = os.path.join(UPLOAD_FOLDER, filename)
-            print filenameWithPath
-            file.save(filenameWithPath)            
-            uploadedFileURL = s3uploading(filename, filenameWithPath);
-            ExifData=getExifData(filenameWithPath)
-            print ExifData
-            ts=time.time()
-            timestamp = datetime.datetime.\
-                        fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+            print title,tags,description
+            if file and allowed_file(file.filename):
+                filename = file.filename
+                filenameWithPath = os.path.join(UPLOAD_FOLDER, filename)
+                print filenameWithPath
+                file.save(filenameWithPath)            
+                uploadedFileURL = s3uploading(filename, filenameWithPath);
+                ExifData=getExifData(filenameWithPath)
+                print ExifData
+                ts=time.time()
+                timestamp = datetime.datetime.\
+                            fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
+                conn = MySQLdb.connect (host = DB_HOSTNAME,
+                            user = DB_USERNAME,
+                            passwd = DB_PASSWORD,
+                            db = DB_NAME, 
+                port = 3306)
+                cursor = conn.cursor ()
+
+                statement = "INSERT INTO photogallerydb.photogallery2 \
+                            (CreationTime,Title,Description,Tags,URL,User,EXIF) \
+                            VALUES ("+\
+                            "'"+str(timestamp)+"', '"+\
+                            title+"', '"+\
+                            description+"', '"+\
+                            tags+"', '"+\
+                            uploadedFileURL+"', '"+\
+                            CUR_USER+"', '"+\
+                            json.dumps(ExifData)+"');"
+                ##Remove CUR_USER above if needed
+                print statement
+                result = cursor.execute(statement)
+                conn.commit()
+                conn.close()
+
+            return redirect('/')
+        else:
+            return render_template('form.html')
+    else:
+        return redirect('/')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login_page():
+    global CUR_USER
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        if password == '' or username == '':
+            ##Stop here
+            print("No password")
+            return
+
+
+        conn = MySQLdb.connect (host = DB_HOSTNAME,
+                        user = DB_USERNAME,
+                        passwd = DB_PASSWORD,
+                        db = DB_NAME, 
+        port = 3306)
+        cursor = conn.cursor ()
+        statement = "SELECT Password FROM photogallerydb.User \
+                WHERE Username LIKE '%"+username+"%';"
+        ## Get username and password from db. Compare username. Compare Password. If neither match, mistake.
+        print(statement)
+        result = cursor.execute(statement)
+        
+        results = cursor.fetchall()
+
+        success = False
+        
+        for item in results:
+            success = True
+            if item[0] != password:
+                success = False
+                break
+        
+        if success == False:
+            print("Username or Password incorrect")
+            return
+        
+        print("debug message #4")
+
+        conn.commit()
+        conn.close()
+        ## If no errors set CUR_USER to username
+        CUR_USER = username;
+        print(CUR_USER)
+        return redirect('/')
+    elif CUR_USER != '':
+        return redirect('/')
+    else:
+        return render_template('login.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register_page():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        confirm = request.form['confirm password']
+
+        if password == '' or confirm == '' or username == '':
+            print("Missing field")
+            return
+
+        if password != confirm:
+            ##Error handling
+            print("Error")
+            return
+        else:
             conn = MySQLdb.connect (host = DB_HOSTNAME,
                         user = DB_USERNAME,
                         passwd = DB_PASSWORD,
                         db = DB_NAME, 
             port = 3306)
-            cursor = conn.cursor ()
-
-            statement = "INSERT INTO photogallerydb.photogallery2 \
-                        (CreationTime,Title,Description,Tags,URL,EXIF) \
-                        VALUES ("+\
-                        "'"+str(timestamp)+"', '"+\
-                        title+"', '"+\
-                        description+"', '"+\
-                        tags+"', '"+\
-                        uploadedFileURL+"', '"+\
-                        json.dumps(ExifData)+"');"
-            
+            cursor = conn.cursor()
+            statement = "SELECT * FROM photogallerydb.User \
+                    WHERE Username LIKE '%"+username+"%';"
+            ##Get username from DB. If successful, then username is taken already
             print statement
             result = cursor.execute(statement)
+            results = cursor.fetchall()            
+
+            for item in results:
+                print("Username has already taken")
+                return
+            
+            ##If username is not taken
+            statement = "INSERT INTO photogallerydb.User \
+                            (Username,Password) \
+                            VALUES ("+\
+                            "'"+username+"', '"+\
+                            password+"');"
+            ##Post username and password to table
+            print statement
+            result = cursor.execute(statement)
+
             conn.commit()
             conn.close()
-
+            return redirect('/login')
+    elif CUR_USER != '':
         return redirect('/')
     else:
-        return render_template('form.html')
+        return render_template('register.html')
+
+
 
 @app.route('/<int:photoID>', methods=['GET'])
 def view_photo(photoID):    
@@ -183,7 +297,8 @@ def view_photo(photoID):
         photo['Description'] = item[3]
         photo['Tags'] = item[4]
         photo['URL'] = item[5]
-        photo['ExifData']=json.loads(item[6])
+        photo['User'] = item[6]  ##Remove if needed
+        photo['ExifData']=json.loads(item[7])
         items.append(photo)
     conn.close()        
     tags=items[0]['Tags'].split(',')
@@ -221,7 +336,8 @@ def search_page():
         photo['Description'] = item[3]
         photo['Tags'] = item[4]
         photo['URL'] = item[5]
-        photo['ExifData']=item[6]
+        photo['User'] = item[6]  ##Remove if needed
+        photo['ExifData']=item[7]
         items.append(photo)
     conn.close()        
     print items

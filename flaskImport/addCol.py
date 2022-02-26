@@ -12,11 +12,9 @@ conn = MySQLdb.connect(host = "mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amaz
 cursor = conn.cursor ()
 cursor.execute ("SELECT VERSION()")
 
-cursor.execute ("CREATE TABLE User ( \
-    UID int PRIMARY KEY NOT NULL AUTO_INCREMENT, \
-    Username TEXT NOT NULL, \
-    Password TEXT NOT NULL\
-    );")
+cursor.execute ("ALTER TABLE photogallery2  \
+    ADD COLUMN User TEXT AFTER URL \
+    ;")
 
 cursor.close ()
 conn.close ()
