@@ -38,8 +38,8 @@ app = Flask(__name__, static_url_path="")
 UPLOAD_FOLDER = os.path.join(app.root_path,'static','media')
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 BASE_URL="www.r4ndo22.net"
-AWS_ACCESS_KEY="AKIAVCQ6IU4HCDJMHLWV"
-AWS_SECRET_KEY="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"
+AWS_ACCESS_KEY=""
+AWS_SECRET_KEY=""
 REGION="us-east-2"
 BUCKET_NAME="422photobucket"
 DB_HOSTNAME="mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amazonaws.com"
