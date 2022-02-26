@@ -15,7 +15,7 @@ cursor.execute ("SELECT VERSION()")
 cursor.execute ("CREATE TABLE User ( \
     UID int PRIMARY KEY NOT NULL AUTO_INCREMENT, \
     Username TEXT NOT NULL, \
-    Password TEXT NOT NULL, \
+    Password TEXT NOT NULL\
     );")
 
 cursor.close ()
