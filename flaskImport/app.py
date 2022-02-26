@@ -34,6 +34,7 @@ import boto3
 import MySQLdb
 
 app = Flask(__name__, static_url_path="")
+app._static_folder = ''
 
 UPLOAD_FOLDER = os.path.join(app.root_path,'static','media')
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
@@ -86,7 +87,7 @@ def s3uploading(filename, filenameWithPath):
                 Bucket=bucket, Key=path_filename)
 
     return "http://"+BUCKET_NAME+\
-            ".s3-website-us-east-2.amazonaws.com/"+ path_filename 
+            ".s3-us-east-2.amazonaws.com/"+ path_filename 
 
 
 
@@ -178,7 +179,7 @@ def login_page():
         if password == '' or username == '':
             ##Stop here
             print("No password")
-            return
+            return render_template('login.html')
 
 
         conn = MySQLdb.connect (host = DB_HOSTNAME,
@@ -230,12 +231,12 @@ def register_page():
 
         if password == '' or confirm == '' or username == '':
             print("Missing field")
-            return
+            return render_template('register.html')
 
         if password != confirm:
             ##Error handling
             print("Error")
-            return
+            return render_template('register.html')
         else:
             conn = MySQLdb.connect (host = DB_HOSTNAME,
                         user = DB_USERNAME,
@@ -252,7 +253,7 @@ def register_page():
 
             for item in results:
                 print("Username has already taken")
-                return
+                return render_template('register.html')
             
             ##If username is not taken
             statement = "INSERT INTO photogallerydb.User \
