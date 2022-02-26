@@ -123,6 +123,7 @@ def home_page():
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
+    global CUR_USER
     CUR_USER = '';
     return redirect('/')
 
