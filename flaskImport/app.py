@@ -168,16 +168,18 @@ def add_photo():
     else:
         return redirect('/')
 
-@app.route('/login', methods=['GET'])
+@app.route('/login', methods=['GET', 'POST'])
 def login_page():
-    if request.method == 'GET':
-        username = request.text['username']
-        password = request.password['password']
-
-        if password == '' | username == '':
+    global CUR_USER
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        if password == '' or username == '':
             ##Stop here
             print("No password")
             return
+
 
         conn = MySQLdb.connect (host = DB_HOSTNAME,
                         user = DB_USERNAME,
@@ -186,27 +188,32 @@ def login_page():
         port = 3306)
         cursor = conn.cursor ()
         statement = "SELECT Password FROM photogallerydb.User \
-                    WHERE Username="+username+";"
+                WHERE Username LIKE '%"+username+"%';"
         ## Get username and password from db. Compare username. Compare Password. If neither match, mistake.
-        print statement
+        print(statement)
         result = cursor.execute(statement)
         
+        results = cursor.fetchall()
+
         success = False
         
-        for item in result:
+        for item in results:
             success = True
             if item[0] != password:
                 success = False
                 break
         
-        if !success:
+        if success == False:
             print("Username or Password incorrect")
             return
         
+        print("debug message #4")
+
         conn.commit()
         conn.close()
         ## If no errors set CUR_USER to username
         CUR_USER = username;
+        print(CUR_USER)
         return redirect('/')
     elif CUR_USER != '':
         return redirect('/')
@@ -214,14 +221,14 @@ def login_page():
         return render_template('login.html')
 
 
-@app.route('/register', methonds=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register_page():
     if request.method == 'POST':
-        username = request.text['username']
-        password = request.password['password']
-        confirm = request.password['confirm password']
+        username = request.form['username']
+        password = request.form['password']
+        confirm = request.form['confirm password']
 
-        if password == '' | confirm == '' | username == '':
+        if password == '' or confirm == '' or username == '':
             print("Missing field")
             return
 
@@ -237,12 +244,13 @@ def register_page():
             port = 3306)
             cursor = conn.cursor()
             statement = "SELECT * FROM photogallerydb.User \
-                    WHERE Username="+username+";"
+                    WHERE Username LIKE '%"+username+"%';"
             ##Get username from DB. If successful, then username is taken already
             print statement
             result = cursor.execute(statement)
-            
-            for item in result:
+            results = cursor.fetchall()            
+
+            for item in results:
                 print("Username has already taken")
                 return
             
@@ -251,8 +259,7 @@ def register_page():
                             (Username,Password) \
                             VALUES ("+\
                             "'"+username+"', '"+\
-                            password+"', '"+\
-                            description+"');"
+                            password+"');"
             ##Post username and password to table
             print statement
             result = cursor.execute(statement)
@@ -291,7 +298,7 @@ def view_photo(photoID):
         photo['Tags'] = item[4]
         photo['URL'] = item[5]
         photo['User'] = item[6]  ##Remove if needed
-        photo['ExifData']=json.loads(item[6])
+        photo['ExifData']=json.loads(item[7])
         items.append(photo)
     conn.close()        
     tags=items[0]['Tags'].split(',')
@@ -330,7 +337,7 @@ def search_page():
         photo['Tags'] = item[4]
         photo['URL'] = item[5]
         photo['User'] = item[6]  ##Remove if needed
-        photo['ExifData']=item[6]
+        photo['ExifData']=item[7]
         items.append(photo)
     conn.close()        
     print items

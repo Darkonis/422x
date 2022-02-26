@@ -12,9 +12,9 @@ conn = MySQLdb.connect(host = "mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amaz
 cursor = conn.cursor ()
 cursor.execute ("SELECT VERSION()")
 
-cursor.execute ("ALTER TABLE photogallery2 ( \
-    ADD COLUMN User VARCHAR(30) AFTER URL
-    );")
+cursor.execute ("ALTER TABLE photogallery2  \
+    ADD COLUMN User TEXT AFTER URL \
+    ;")
 
 cursor.close ()
 conn.close ()
