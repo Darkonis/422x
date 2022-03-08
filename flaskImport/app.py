@@ -23,12 +23,16 @@ SOFTWARE.
 '''
 
 #!flask/bin/python
-from flask import Flask, jsonify, abort, request, make_response, url_for
+import re
+from urllib import response
+from flask import Flask, current_app, jsonify, abort, request, make_response, url_for
 from flask import render_template, redirect
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user, UserMixin
 import os    
 import time
 import datetime
+
+from itsdangerous import Serializer
 import exifread
 import json
 import boto3  
@@ -49,15 +53,14 @@ BUCKET_NAME="422photobucket"
 ##DB_USERNAME = 'admin'
 ##DB_PASSWORD = 'adminpass'
 ##DB_NAME = 'photogallerydb'
-CUR_USER = ''
 
-dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_KEY,
-                          aws_secret_access_key=AWS_SECRET,
+dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
+                          aws_secret_access_key=AWS_SECRET_KEY,
                           region_name=REGION)
 
-user = dynamodb.Table('User')
 photo = dynamodb.Table('photogallery')
 
+### Helpers ###
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -98,10 +101,12 @@ def s3uploading(filename, filenameWithPath):
     return "http://"+BUCKET_NAME+\
             ".s3-us-east-2.amazonaws.com/"+ path_filename 
 
+## Creates and attaches a loginmanger to the web server
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+## Loads the user based on their id
 @login_manager.user_loader
 def load_user(user_id):
     try:
@@ -109,6 +114,47 @@ def load_user(user_id):
     except:
         return None
 
+## Defines athe user class and assigns relevant information
+class User(UserMixin):
+    def __init__(self, userid, username=None):
+        self.dynamodb = boto3.resource('dynamodb')
+        self.table = dynamodb.Table('User')
+        self.id = userid
+        item = table.get_item(Key={'user_email': userid})
+        if username:
+            self.username = username
+        else:
+            item = self.table.get_item(Key={'user_email': userid})
+            self.username = item['Item']['username']
+            self.password_hash = item['Item']['password_hash']
+
+    ## Compares the password hash when logging in
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+## Creates a new user, and returns False if unable to
+def new_user(userid, username, password):
+    dynamodb = boto3.resource("dynamodb")
+    table = dynamodb.Table("User")
+    item = table.get_item(Key={'user_email':userid})
+    if 'Item' in item:
+        return False
+
+    password_hash = generate_password_hash(password)
+
+    table_item = {
+        'user_email': userid,
+        'username': username,
+        'password_hash' : password_hash,
+    }
+
+    table.put_item(Item=table_item)
+    return True
+
+
+### Routes ###
+
+#Homepage
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
     response = photo.scan()
@@ -117,98 +163,83 @@ def home_page():
     print(items)
 
     display = "display: block;"
-    if CUR_USER == '':
+    if not current_user:
         display = "display: none;"
     return render_template('index.html', photos=items, d=display)
 
+#Logout
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
     logout_user()
     return redirect('/login')
 
+#Adds photos to the database and site
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
 def add_photo():
-    if CUR_USER != '':
-        if request.method == 'POST':    
-            uploadedFileURL=''
-            file = request.files['imagefile']
-            title = request.form['title']
-            tags = request.form['tags']
-            description = request.form['description']
+    if request.method == 'POST':    
+        uploadedFileURL=''
+        file = request.files['imagefile']
+        title = request.form['title']
+        tags = request.form['tags']
+        description = request.form['description']
 
-            print title,tags,description
-            if file and allowed_file(file.filename):
-                filename = file.filename
-                filenameWithPath = os.path.join(UPLOAD_FOLDER, filename)
-                print filenameWithPath
-                file.save(filenameWithPath)            
-                uploadedFileURL = s3uploading(filename, filenameWithPath)
-                ExifData=getExifData(filenameWithPath)
-                print ExifData
-                ts=time.time()
-                timestamp = datetime.datetime.\
-                            fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        print title,tags,description
+        if file and allowed_file(file.filename):
+            filename = file.filename
+            filenameWithPath = os.path.join(UPLOAD_FOLDER, filename)
+            print filenameWithPath
+            file.save(filenameWithPath)            
+            uploadedFileURL = s3uploading(filename, filenameWithPath)
+            ExifData=getExifData(filenameWithPath)
+            print ExifData
+            ts=time.time()
+            timestamp = datetime.datetime.\
+                        fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
-                photo.put_item(
-                    Item={
-                        "PhotoID": str(int(ts*1000)),
-                        "CreationTime": timestamp,
-                        "Title": title,
-                        "Description": description,
-                        "Tags": tags,
-                        "URL": uploadedFileURL,
-                        #"UserID": userID
-                        "ExifData": json.dumps(ExifData)
-                    }
-                )
+            photo.put_item(
+                Item={
+                    "PhotoID": str(int(ts*1000)),
+                    "CreationTime": timestamp,
+                    "Title": title,
+                    "Description": description,
+                    "Tags": tags,
+                    "URL": uploadedFileURL,
+                    "UserID": current_user.id,
+                    "ExifData": json.dumps(ExifData)
+                }
+            )
 
-            return redirect('/')
-        else:
-            return render_template('form.html')
-    else:
         return redirect('/')
+    else:
+        return render_template('form.html')
 
+#Login page
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
     if request.method == 'POST':
+        userid = request.form['email']
         username = request.form['username']
         password = request.form['password']
         
         if password == '' or username == '':
             ##Stop here
             print("No password")
-            return
+            return redirect('/login')
 
-        #success = False
-
-        user = User(username)
+        user = User(userid)
         if user.verify_password(password):
             login_user(user)
             return redirect('/')
-        #response=user.scan(FilterExpression=Attr('username').eq(str(username)))
-        #item = response['Items']
-
-        ##Find what elements are obtained and how to reference them
-        #if item == password:
-        #    success = True
-        
-        #if not success:
-        #    print("Username or Password incorrect")
-        #    return
-        
-        #print("debug message #4")
-        ## If no errors set CUR_USER to username
-        #CUR_USER = username
-        #print(CUR_USER)
     else:
         return render_template('login.html')
 
-
+#Register page
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():
     if request.method == 'POST':
+        userid = request.form["email"]
         username = request.form['username']
         password = request.form['password']
         confirm = request.form['confirm password']
@@ -222,28 +253,14 @@ def register_page():
             print("Error")
             return render_template('register.html')
         else:
-            results = user.scan(FilterExpression=Attr('username').eq(str(username)))
-            item = results['Items']
-            if item :
-                ## Username exists
-                print("Registration error")
-                return render_template('register.html')
-
-            user.put_item(
-                Item={
-                    "UserID": 11, ##Setup auto assignment
-                    "Username": username,
-                    "Password": password, ##Maybe make it secure
-                }
-            )
+            if not new_user(userid, username, password):
+                render_template('register.html')
+            user = User(userid, username)
             return redirect('/login')
-    elif CUR_USER != '':
-        return redirect('/')
     else:
         return render_template('register.html')
 
-
-
+#View photo
 @app.route('/<int:photoID>', methods=['GET'])
 def view_photo(photoID):    
     response = photo.scan(
@@ -258,6 +275,7 @@ def view_photo(photoID):
     return render_template('photodetail.html', photo=items[0], 
                             tags=tags, exifdata=exifdata)
 
+#Search for photos
 @app.route('/search', methods=['GET'])
 def search_page():
     query = request.args.get('query', None)    
