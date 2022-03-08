@@ -25,6 +25,7 @@ SOFTWARE.
 #!flask/bin/python
 from flask import Flask, jsonify, abort, request, make_response, url_for
 from flask import render_template, redirect
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user, UserMixin
 import os    
 import time
 import datetime
@@ -34,14 +35,16 @@ import boto3
 import MySQLdb
 
 app = Flask(__name__, static_url_path="")
+app._static_folder = ''
 
 UPLOAD_FOLDER = os.path.join(app.root_path,'static','media')
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 BASE_URL="www.r4ndo22.net"
-AWS_ACCESS_KEY="AKIAVCQ6IU4HCDJMHLWV"
-AWS_SECRET_KEY="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"
+AWS_ACCESS_KEY=""
+AWS_SECRET_KEY=""
 REGION="us-east-2"
 BUCKET_NAME="422photobucket"
+
 ##DB_HOSTNAME="mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amazonaws.com"
 ##DB_USERNAME = 'admin'
 ##DB_PASSWORD = 'adminpass'
@@ -93,9 +96,18 @@ def s3uploading(filename, filenameWithPath):
                 Bucket=bucket, Key=path_filename)
 
     return "http://"+BUCKET_NAME+\
-            ".s3-website-us-east-2.amazonaws.com/"+ path_filename 
+            ".s3-us-east-2.amazonaws.com/"+ path_filename 
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        return User(user_id)
+    except:
+        return None
 
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
@@ -110,12 +122,13 @@ def home_page():
     return render_template('index.html', photos=items, d=display)
 
 @app.route('/logout', methods=['GET', 'POST'])
+@login_required
 def logout():
-    global CUR_USER
-    CUR_USER = ''
-    return redirect('/')
+    logout_user()
+    return redirect('/login')
 
 @app.route('/add', methods=['GET', 'POST'])
+@login_required
 def add_photo():
     if CUR_USER != '':
         if request.method == 'POST':    
@@ -159,7 +172,6 @@ def add_photo():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
-    global CUR_USER
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -169,26 +181,27 @@ def login_page():
             print("No password")
             return
 
-        success = False
+        #success = False
 
-        response=user.scan(FilterExpression=Attr('username').eq(str(username)))
-        item = response['Items']
+        user = User(username)
+        if user.verify_password(password):
+            login_user(user)
+            return redirect('/')
+        #response=user.scan(FilterExpression=Attr('username').eq(str(username)))
+        #item = response['Items']
 
         ##Find what elements are obtained and how to reference them
-        if item == password:
-            success = True
+        #if item == password:
+        #    success = True
         
-        if not success:
-            print("Username or Password incorrect")
-            return
+        #if not success:
+        #    print("Username or Password incorrect")
+        #    return
         
-        print("debug message #4")
+        #print("debug message #4")
         ## If no errors set CUR_USER to username
-        CUR_USER = username
-        print(CUR_USER)
-        return redirect('/')
-    elif CUR_USER != '':
-        return redirect('/')
+        #CUR_USER = username
+        #print(CUR_USER)
     else:
         return render_template('login.html')
 
@@ -202,12 +215,12 @@ def register_page():
 
         if password == '' or confirm == '' or username == '':
             print("Missing field")
-            return
+            return render_template('register.html')
 
         if password != confirm:
             ##Error handling
             print("Error")
-            return
+            return render_template('register.html')
         else:
             results = user.scan(FilterExpression=Attr('username').eq(str(username)))
             item = results['Items']
