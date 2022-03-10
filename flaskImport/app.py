@@ -24,10 +24,13 @@ SOFTWARE.
 
 #!flask/bin/python
 import re
-from urllib import response
+#from urllib import response
 from flask import Flask, current_app, jsonify, abort, request, make_response, url_for
 from flask import render_template, redirect
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user, UserMixin
+from boto3.dynamodb.conditions import Key, Attr
+from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 import os    
 import time
 import datetime
@@ -49,14 +52,16 @@ AWS_SECRET_KEY=""
 REGION="us-east-2"
 BUCKET_NAME="422photobucket"
 
+app.secret_key=AWS_SECRET_KEY
+
 ##DB_HOSTNAME="mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amazonaws.com"
 ##DB_USERNAME = 'admin'
 ##DB_PASSWORD = 'adminpass'
 ##DB_NAME = 'photogallerydb'
 
 dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
-                          aws_secret_access_key=AWS_SECRET_KEY,
-                          region_name=REGION)
+                         aws_secret_access_key=AWS_SECRET_KEY,
+                         region_name=REGION)
 
 photo = dynamodb.Table('photogallery')
 
@@ -77,7 +82,9 @@ def not_found(error):
 
 def getExifData(path_name):
     f = open(path_name, 'rb')
+    print f
     tags = exifread.process_file(f)
+    print tags
     ExifData={}
     for tag in tags.keys():
         if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 
@@ -117,10 +124,12 @@ def load_user(user_id):
 ## Defines athe user class and assigns relevant information
 class User(UserMixin):
     def __init__(self, userid, username=None):
-        self.dynamodb = boto3.resource('dynamodb')
-        self.table = dynamodb.Table('User')
+        self.dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
+                         aws_secret_access_key=AWS_SECRET_KEY,
+                         region_name=REGION)
+        self.table = self.dynamodb.Table('User')
         self.id = userid
-        item = table.get_item(Key={'user_email': userid})
+        item = self.table.get_item(Key={'user_email': userid})
         if username:
             self.username = username
         else:
@@ -134,7 +143,7 @@ class User(UserMixin):
 
 ## Creates a new user, and returns False if unable to
 def new_user(userid, username, password):
-    dynamodb = boto3.resource("dynamodb")
+   # self.dynamodb = dynamodb
     table = dynamodb.Table("User")
     item = table.get_item(Key={'user_email':userid})
     if 'Item' in item:
@@ -160,7 +169,7 @@ def home_page():
     response = photo.scan()
 
     items = response['Items']
-    print(items)
+    #print(items)
 
     display = "display: block;"
     if not current_user:
@@ -217,7 +226,7 @@ def add_photo():
 
 #Login page
 @app.route('/login', methods=['GET', 'POST'])
-def login_page():
+def login():
     if request.method == 'POST':
         userid = request.form['email']
         username = request.form['username']
@@ -232,6 +241,8 @@ def login_page():
         if user.verify_password(password):
             login_user(user)
             return redirect('/')
+        else:
+            return render_template('login.html')
     else:
         return render_template('login.html')
 
@@ -263,15 +274,12 @@ def register_page():
 #View photo
 @app.route('/<int:photoID>', methods=['GET'])
 def view_photo(photoID):    
-    response = photo.scan(
-        FilterExpression=Attr('PhotoID').eq(str(photoID))
+    response = photo.query(
+            KeyConditionExpression=Key('PhotoID').eq(str(photoID))
     )
-
     items = response['Items']
-    print(items[0])
     tags=items[0]['Tags'].split(',')
-    exifdata=items[0]['ExifData']
-    
+    exifdata=json.loads(items[0]['ExifData']) 
     return render_template('photodetail.html', photo=items[0], 
                             tags=tags, exifdata=exifdata)
 
@@ -285,6 +293,7 @@ def search_page():
                         Attr('Description').contains(str(query)) |
                         Attr('Tags').contains(str(query))
     )
+    print(response)
     items = response['Items']
     return render_template('search.html', photos=items, 
                             searchquery=query)

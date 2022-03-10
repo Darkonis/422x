@@ -53,7 +53,7 @@
                 </h2>
                 <p>Uploaded: {{photo.CreationTime}}</p>
                 <p>{{photo.Description}}</p>
-                <p>Uploaded	 by user: {{photo.User}}</p>
+                <p>Uploaded	 by user: {{photo.UserID}}</p>
               </div>
             </article>
           </div>
@@ -78,16 +78,17 @@
                 <h4 class="blog-sidebar-heading-title">EXIF Data</h4>
               </div>
               <div class="blog-sidebar-content">
-                <ul class="list-inline blog-sidebar-tags">
-                  {% for key, value in exifdata.items() %}
-                  <li>{{key}}: {{value}}</li>
-                  {% endfor %}
-                </ul>
+                
+		<ul class="list-inline blog-sidebar-tags">
+		{% for key, value in exifdata.items()  %}
+              	   <li>{{key}}: {{value}}</li>
+                   {% endfor %}
+		</ul>
               </div>
             </div>
 			<div class="blog-sider">
-				<button href="{{photo.URL}}" class="btn-base-bg 
-                        btn-base-sm radius-3">Submit</button>
+				<a href="{{photo.URL}}" class="btn-base-bg 
+					btn-base-sm radius-3">Download</a>
 			</div>
           </div>
         </div>
