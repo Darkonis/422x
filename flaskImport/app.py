@@ -23,6 +23,7 @@ SOFTWARE.
 '''
 
 #!flask/bin/python
+from crypt import methods
 import re
 #from urllib import response
 from flask import Flask, current_app, jsonify, abort, request, make_response, url_for
@@ -166,10 +167,12 @@ def new_user(userid, username, password):
 #Homepage
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
-    response = photo.scan()
+    response = photo.scan()  #Replace with all catagories and subcatagories
 
-    items = response['Items']
+    items = response['Items']  #Break it up into catagories and subcatagories
     #print(items)
+
+    ## Two different display options, probably a nested loop of some kind
 
     display = "display: block;"
     if not current_user:
@@ -187,6 +190,15 @@ def logout():
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
 def add_photo():
+
+    ## Change to ask the user what item they want to list
+
+    # TODO User choose object
+    
+    ## Redirect to approptite page
+
+    # TODO Redirect
+
     if request.method == 'POST':    
         uploadedFileURL=''
         file = request.files['imagefile']
@@ -224,6 +236,29 @@ def add_photo():
     else:
         return render_template('form.html')
 
+#Add Item page
+@app.route('/add/<path:Item>', methods=['GET', 'POST'])
+def add_item(Item):
+    print(Item)
+
+    ## When reaching page, display a number of options designated by the object
+    ## Set values of different fields in the addItem.html, to hide or show the required fields
+
+    # TODO set HTML fields
+
+    ## GET data from HTML page on submit
+
+    ## If missing fields, show error messages
+
+    ## Add item to databases
+
+    ##Redirect to home page
+
+    return redirect('/')
+
+
+
+
 #Login page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -255,6 +290,8 @@ def register_page():
         password = request.form['password']
         confirm = request.form['confirm password']
 
+        ## May include more information like phone number or city. Information pending on that.
+
         if password == '' or confirm == '' or username == '':
             print("Missing field")
             return render_template('register.html')
@@ -274,6 +311,9 @@ def register_page():
 #View photo
 @app.route('/<int:photoID>', methods=['GET'])
 def view_photo(photoID):    
+
+    ##Gut to display item
+    
     response = photo.query(
             KeyConditionExpression=Key('PhotoID').eq(str(photoID))
     )
@@ -288,6 +328,8 @@ def view_photo(photoID):
 def search_page():
     query = request.args.get('query', None)    
 
+    #Adjust to fit new data.
+
     response= photo.scan(
         FilterExpression=Attr('Title').contains(str(query)) |
                         Attr('Description').contains(str(query)) |
@@ -297,6 +339,27 @@ def search_page():
     items = response['Items']
     return render_template('search.html', photos=items, 
                             searchquery=query)
+
+# View Catagory
+@app.route('/<path:Catagory>', methods=['GET'])
+def view_Catagory(Catagory):
+    print(Catagory)
+    ## Show all subcatagories
+    ## Show items in catagory, descending time order
+
+    ##return render_template('catagory.html'...)
+    return 0
+
+# View Subcatagory
+@app.route('/<path:Catagory>/<path:Subcatagory', methods=['GET'])
+def view_Subcatagory(Catagory, Subcatagory):
+    print(Catagory)
+    print(Subcatagory)
+
+    ##Show items in subcatagory, descending time order
+    
+    ##return render_template('subcatagory.html'...)
+    return 0
 
 if __name__ == '__main__':
     app.run(debug=True, host="172.31.28.76", port=5001)
