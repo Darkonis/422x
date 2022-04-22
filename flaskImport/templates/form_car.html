@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Project Phase 4</title>
+  <meta name="viewport" content="width=device-width, 
+    minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link href="assets/plugins/bootstrap/css/bootstrap.min.css" 
+    rel="stylesheet" type="text/css" />
+  <link href="assets/css/global.css" rel="stylesheet" 
+    type="text/css" />
+  <script type="text/javascript" src="assets/plugins/jquery.min.js">
+  </script>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="bg-color-sky-light">
+      <br>
+      <center>
+        <h2>Project Phase 4</h2>
+        <br>
+        <a href="/">Home</a> | <a href="/add">Add</a>
+      </center>
+      <div class="content-sm container">
+        <div class="row">
+          <div class="col-md-12 md-margin-b-50">
+            <article class="blog-grid margin-b-30">
+              <div class="blog-grid-content">
+                <h2 class="blog-grid-title-lg">Add Car/Truck</h2>
+                <form method='post' action="/addcar" 
+                    enctype="multipart/form-data">
+                  <p>Title
+				  <input type="text" name="title" id="title" 
+                    class="form-control" placeholder="Title">
+                  </p>
+                  <textarea name="description" id="description" 
+                    class="form-control" rows="3" 
+                    placeholder=" Description"></textarea>
+				  <p>Upload Photo 
+				  <input type="file" name="imagefile" 
+                    id="imagefile" class="form-control"></p>
+                  <p>Year Built
+				  <input type="text" name="year" id="year" 
+                    class="form-control" placeholder="Year Built">
+                  </p>
+				  <p>Make/Model
+				  <input type="text" name="make" id="make" 
+                    class="form-control" placeholder="Make/Model">
+                  </p>
+				  <p>Color
+				  <input type="text" name="color" id="color" 
+                    class="form-control" placeholder="Color">
+                  </p>
+				  <p>Type
+				  <input type="text" name="type" id="type" 
+                    class="form-control" placeholder="Type">
+                  </p>
+				  <p>Condition<input type="text" name="condition" id="condition" 
+                    class="form-control" placeholder="Condition">
+                  </p>
+				  <p>Miles
+				  <input type="text" name="miles" id="miles" 
+                    class="form-control" placeholder="Miles">
+                  </p>
+				  <p>Price
+				  <input type="text" name="price" id="price" 
+                    class="form-control" placeholder="Price">
+                  </p>
+				  <p>City
+				  <input type="text" name="city" id="city" 
+                    class="form-control" placeholder="City">
+                  </p>
+				  <p>Phone Number
+				  <input type="text" name="phone" id="phone" 
+                    class="form-control" placeholder="Phone Number">
+                  </p>
+                  <button type="submit" class="btn-base-bg 
+                    btn-base-sm radius-3">Submit</button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript" 
+    src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+  <script type="text/javascript" 
+    src="assets/scripts/app.js"></script>
+</body>
+</html>
