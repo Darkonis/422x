@@ -283,15 +283,42 @@ def add_item(Item):
     ## When reaching page, display a number of options designated by the object
     ## Set values of different fields in the addItem.html, to hide or show the required fields
 
+    a, b, c, d, e, f, g, h, i, j, k, l, m, n = 0
+
+    #Compare catagories, and set fields to 1 if needed. Rename
+
+    if catagoryA:
+        a = 1
+    elif catagoryB:
+        b = 1
+    
     # TODO set HTML fields
 
     ## GET data from HTML page on submit
 
     ## If missing fields, show error messages
 
+    conn = conn = MySQLdb.connect (host = DB_HOSTNAME,
+                        user = DB_USERNAME,
+                        passwd = DB_PASSWORD,
+                        db = DB_NAME, 
+                        port = 3306)
+
+    cursor = conn.cursor ()
+
+    statement = ""
+
+    if catagoryA :
+        statement = ""
+    elif catagoryB :
+        statement = ""
+
+    cursor.execute(statement)
+    cursor.commit()
+    cursor.close()
     ## Add item to databases
 
-    ##Redirect to home page
+    ## Redirect to home page
 
     return redirect('/')
 
