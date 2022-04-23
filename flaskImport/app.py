@@ -29,6 +29,7 @@ import re
 from flask import Flask, current_app, jsonify, abort, request, make_response, url_for
 from flask import render_template, redirect
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user, UserMixin
+from numpy import False_
 from boto3.dynamodb.conditions import Key, Attr
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -53,18 +54,19 @@ AWS_SECRET_KEY=""
 REGION="us-east-2"
 BUCKET_NAME="422photobucket"
 
+
 app.secret_key=AWS_SECRET_KEY
 
-##DB_HOSTNAME="mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amazonaws.com"
-##DB_USERNAME = 'admin'
-##DB_PASSWORD = 'adminpass'
-##DB_NAME = 'photogallerydb'
+DB_HOSTNAME="mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amazonaws.com"
+DB_USERNAME = 'admin'
+DB_PASSWORD = 'adminpass'
+DB_NAME = 'photogallerydb'
 
-dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
-                         aws_secret_access_key=AWS_SECRET_KEY,
-                         region_name=REGION)
+##dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
+                         ##aws_secret_access_key=AWS_SECRET_KEY,
+                         ##region_name=REGION)
 
-photo = dynamodb.Table('photogallery')
+##photo = dynamodb.Table('photogallery')
 
 ### Helpers ###
 
@@ -83,9 +85,7 @@ def not_found(error):
 
 def getExifData(path_name):
     f = open(path_name, 'rb')
-    print f
     tags = exifread.process_file(f)
-    print tags
     ExifData={}
     for tag in tags.keys():
         if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 
@@ -122,19 +122,33 @@ def load_user(user_id):
     except:
         return None
 
-## Defines athe user class and assigns relevant information
+## Defines the user class and assigns relevant information
 class User(UserMixin):
+    ## TODO
     def __init__(self, userid, username=None):
         self.dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
                          aws_secret_access_key=AWS_SECRET_KEY,
                          region_name=REGION)
-        self.table = self.dynamodb.Table('User')
-        self.id = userid
-        item = self.table.get_item(Key={'user_email': userid})
-        if username:
+        conn = MySQLdb(host = DB_HOSTNAME,
+                    user = DB_USERNAME,
+                    passwd = DB_PASSWORD,
+                    db = DB_NAME,
+                    port = 3306)
+
+        cursor = conn.cursor()
+
+        ##self.table = self.dynamodb.Table('User')
+        ##self.id = userid
+        ##item = self.table.get_item(Key={'user_email': userid})
+
+        cursor.execute("SELECT * FROM photogallerydb.User WHERE Username="+str(userid)+";")
+
+        results = cursor.fetchall()
+
+        if results:
             self.username = username
         else:
-            item = self.table.get_item(Key={'user_email': userid})
+            item = results[0] ## TODO fix
             self.username = item['Item']['username']
             self.password_hash = item['Item']['password_hash']
 
@@ -144,10 +158,23 @@ class User(UserMixin):
 
 ## Creates a new user, and returns False if unable to
 def new_user(userid, username, password):
-   # self.dynamodb = dynamodb
-    table = dynamodb.Table("User")
-    item = table.get_item(Key={'user_email':userid})
-    if 'Item' in item:
+    #self.dynamodb = dynamodb
+    #table = dynamodb.Table("User")
+    #item = table.get_item(Key={'user_email':userid})
+    #if 'Item' in item:
+    #    return False
+
+    conn = MySQLdb.connect(host = DB_HOSTNAME,
+                        user = DB_USERNAME,
+                        passwd = DB_PASSWORD,
+                        db = DB_NAME,
+                        port = 3306)
+
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM photogallerydb.photogallery2") ##Select Username from user_email
+    results = cursor.fetchall()
+
+    if results:
         return False
 
     password_hash = generate_password_hash(password)
@@ -158,9 +185,19 @@ def new_user(userid, username, password):
         'password_hash' : password_hash,
     }
 
-    table.put_item(Item=table_item)
-    return True
+    cursor.execute("INSERT INTO photogallerydb.User (CreationTime,Title,Decription,Tags,URL,EXIF) VALUES ("+
+                    "'"+str(timestamp)+"', '"+\
+                        title+"', '"+\
+                        description+"', '"+\
+                        tags+"', '"+\
+                        uploadedFileURL+"', '"+\
+                        json.dumps(ExifData)+"');")
 
+
+    conn.commit()
+    conn.close()
+    #table.put_item(Item=table_item)
+    return True
 
 ### Routes ###
 
@@ -168,6 +205,8 @@ def new_user(userid, username, password):
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
     response = photo.scan()  #Replace with all catagories and subcatagories
+
+    conn = MySQLdb
 
     items = response['Items']  #Break it up into catagories and subcatagories
     #print(items)
