@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Photo Gallery</title>
+  <title>Project Phase 4</title>
   <meta name="viewport" content="width=device-width, 
       minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="/assets/plugins/bootstrap/css/bootstrap.min.css" 
@@ -29,9 +29,9 @@
     <div class="bg-color-sky-light">
       <br>
       <center>
-        <h2>Photo Gallery</h2>
+        <h2>Project Phase 4</h2>
         <br>
-	<a href="/">Home</a> | <a href="/add">Add Photo</a> | <a href="/register">Register</a> | <a href="/login">Login</a><br><br>
+	<a href="/">Home</a> | <a href="/add">Add</a> | <a href="/register">Register</a> | <a href="/login">Login</a><br><br>
 
         <div class="container">
           <div class="row">
@@ -49,7 +49,7 @@
       <div class="content-sm container">
         <div class="theme-portfolio">
           <div id="portfolio-4-col-grid" class="cbp">
-            {% for p in photos %}
+            <!--{% for i in items %}
             <div class="cbp-item idea web-design theme-portfolio-item-v2 
               theme-portfolio-item-xs">
               <div class="cbp-caption">
@@ -67,14 +67,26 @@
               </div>
               <div class="theme-portfolio-title-heading">
                 <h4 class="theme-portfolio-title">
-                  <a href="/{{p.PhotoID}}">{{p.Title}}</a>
+                  <a href="/{{p.PhotoID}}">{{i.Title}}</a>
                 </h4>
                 <span class="theme-portfolio-subtitle">
                 {{p.CreationTime}}</span>
               </div>
             </div>
-            {% endfor %}
-
+            {% endfor %}-->
+			<div class="cbp-item idea web-design theme-portfolio-item-v2 
+              theme-portfolio-item-xs">
+				<h2><a href="/products">Products</h2>
+				<p><a href="/products/car">Car/Truck</a></p>
+				<p><a href="/products/motorcycle">Motorcycle</a></p>
+				<p><a href="/products/boat">Boat</a></p>
+				<p><a href="/products/book">Book</a></p>
+				<p><a href="/products/furniture">Furniture</a></p>
+				<h2><a href="/housing">Housing</h2>
+				<h2><a href="/services">Services</h2>
+				<h2><a href="/jobs">Jobs</h2>
+				<h2><a href="/community">Community</h2>
+			</div>
           </div>
         </div>
       </div>
