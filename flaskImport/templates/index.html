@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Photo Gallery</title>
+  <title>Project Phase 4</title>
   <meta name="viewport" content="width=device-width, 
       minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="/assets/plugins/bootstrap/css/bootstrap.min.css" 
@@ -20,18 +20,16 @@
 </head>
 
 <body>
-  <div class="content-section" style="{{d}}">
-      <form action="/logout" method="post">
-          <button type="submit">Logout</button>
-      </form>
-  </div>
   <div class="wrapper">
     <div class="bg-color-sky-light">
+      <form action="/logout" method="post">
+          <button class="btn-base-bg" type="submit">Logout</button>
+      </form>
       <br>
       <center>
-        <h2>Photo Gallery</h2>
+        <h2>Project Phase 4</h2>
         <br>
-	<a href="/">Home</a> | <a href="/add">Add Photo</a> | <a href="/register">Register</a> | <a href="/login">Login</a><br><br>
+	<a href="/">Home</a> | <a href="/add">Add</a> | <a href="/register">Register</a> | <a href="/login">Login</a><br><br>
 
         <div class="container">
           <div class="row">
@@ -39,7 +37,7 @@
               <div class="blog-grid-content">
                 <form method='get' action="/search">
                   <input type="text" name="query" id="query" 
-                  class="form-control" placeholder="Search photos">
+                  class="form-control" placeholder="Search items">
               </div>
             </div>
           </div>
@@ -48,8 +46,8 @@
 
       <div class="content-sm container">
         <div class="theme-portfolio">
-          <div id="portfolio-4-col-grid" class="cbp">
-            {% for p in photos %}
+          <div id="portfolio-4-col-grid">
+            <!--{% for i in items %}
             <div class="cbp-item idea web-design theme-portfolio-item-v2 
               theme-portfolio-item-xs">
               <div class="cbp-caption">
@@ -67,14 +65,65 @@
               </div>
               <div class="theme-portfolio-title-heading">
                 <h4 class="theme-portfolio-title">
-                  <a href="/{{p.PhotoID}}">{{p.Title}}</a>
+                  <a href="/{{p.PhotoID}}">{{i.Title}}</a>
                 </h4>
                 <span class="theme-portfolio-subtitle">
                 {{p.CreationTime}}</span>
               </div>
             </div>
-            {% endfor %}
-
+            {% endfor %}-->
+			<div class="cbp-item idea web-design theme-portfolio-item-v2 
+              theme-portfolio-item-xs">
+				<table class="content-sm container">
+					<tr>
+						<th><h2><a href="/products">Products</h2></th>
+						<th><h2><a href="/housing">Housing</h2></th>
+						<th><h2><a href="/services">Services</h2></th>
+						<th><h2><a href="/jobs">Jobs</h2></th>
+						<th><h2><a href="/community">Community</h2></th>
+					</tr>
+					<tr>
+						<th><p><a href="/products/car">Car/Truck</a></p></th>
+						<th><p><a href="/housing/apartment">Apartment</a></p></th>
+						<th><p><a href="/services/clean">Clean</a></p></th>
+						<th><p><a href="/jobs/contract">Contract</a></p></th>
+						<th><p><a href="/community/religious">Religious</a></p></th>
+						<th></th>
+					</tr>
+					<tr>
+						<th><p><a href="/products/motorcycle">Motorcycle</a></p></th>
+						<th><p><a href="/housing/house">House</a></p></th>
+						<th><p><a href="/services/fix">Fix</a></p></th>
+						<th><p><a href="/jobs/part">Part time</a></p></th>
+						<th><p><a href="/community/sport">Sport</a></p></th>
+						<th></th>
+					</tr>
+					<tr>
+						<th><p><a href="/products/boat">Boat</a></p></th>
+						<th><p><a href="/housing/trailer">Trailer</a></p></th>
+						<th><p><a href="/services/transportation">Transportation</a></p></th>
+						<th><p><a href="/jobs/full">Full time</a></p></th>
+						<th><p><a href="/community/event">Event</a></p></th>
+						<th></th>
+					</tr>
+					<tr>
+						<th><p><a href="/products/book">Book</a></p></th>
+						<th><p><a href="/housing/rental">Rental</a></p></th>
+						<th><p><a href="/services/tutor">Tutor</a></p></th>
+						<th><p><a href="/jobs/commission">Commission</a></p></th>
+						<th><p><a href="/community/caretaker">Caretaker</a></p></th>
+						<th></th>
+					</tr>
+					<tr>
+						<th><p><p><a href="/products/furniture">Furniture</a></p></th>
+						<th><p><a href="/housing/air">Air BnB</a></p></th>
+						<th><p><a href="/services/delivery">Delivery</a></p></th>
+						<th><p><a href="/jobs/find">Looking for work</a></p></th>
+						<th><p><a href="/community/food">Food</a></p></th>
+						<th></th>
+					</tr>
+				</table>
+			</div>
           </div>
         </div>
       </div>
