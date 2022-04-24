@@ -23,11 +23,13 @@ SOFTWARE.
 '''
 
 #!flask/bin/python
+from crypt import methods
 import re
 #from urllib import response
 from flask import Flask, current_app, jsonify, abort, request, make_response, url_for
 from flask import render_template, redirect
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user, UserMixin
+from numpy import False_
 from boto3.dynamodb.conditions import Key, Attr
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -52,18 +54,19 @@ AWS_SECRET_KEY=""
 REGION="us-east-2"
 BUCKET_NAME="422photobucket"
 
+
 app.secret_key=AWS_SECRET_KEY
 
-##DB_HOSTNAME="mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amazonaws.com"
-##DB_USERNAME = 'admin'
-##DB_PASSWORD = 'adminpass'
-##DB_NAME = 'photogallerydb'
+DB_HOSTNAME="mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amazonaws.com"
+DB_USERNAME = 'admin'
+DB_PASSWORD = 'adminpass'
+DB_NAME = 'photogallerydb'
 
-dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
-                         aws_secret_access_key=AWS_SECRET_KEY,
-                         region_name=REGION)
+##dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
+                         ##aws_secret_access_key=AWS_SECRET_KEY,
+                         ##region_name=REGION)
 
-photo = dynamodb.Table('photogallery')
+##photo = dynamodb.Table('photogallery')
 
 ### Helpers ###
 
@@ -82,9 +85,7 @@ def not_found(error):
 
 def getExifData(path_name):
     f = open(path_name, 'rb')
-    print f
     tags = exifread.process_file(f)
-    print tags
     ExifData={}
     for tag in tags.keys():
         if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 
@@ -121,19 +122,33 @@ def load_user(user_id):
     except:
         return None
 
-## Defines athe user class and assigns relevant information
+## Defines the user class and assigns relevant information
 class User(UserMixin):
+    ## TODO
     def __init__(self, userid, username=None):
-        self.dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
-                         aws_secret_access_key=AWS_SECRET_KEY,
-                         region_name=REGION)
-        self.table = self.dynamodb.Table('User')
-        self.id = userid
-        item = self.table.get_item(Key={'user_email': userid})
-        if username:
+        ##self.dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
+                         ##aws_secret_access_key=AWS_SECRET_KEY,
+                         ##region_name=REGION)
+        conn = MySQLdb(host = DB_HOSTNAME,
+                    user = DB_USERNAME,
+                    passwd = DB_PASSWORD,
+                    db = DB_NAME,
+                    port = 3306)
+
+        cursor = conn.cursor()
+
+        ##self.table = self.dynamodb.Table('User')
+        ##self.id = userid
+        ##item = self.table.get_item(Key={'user_email': userid})
+
+        cursor.execute("SELECT * FROM photogallerydb.User WHERE Username="+str(userid)+";")
+
+        results = cursor.fetchall()
+
+        if results:
             self.username = username
         else:
-            item = self.table.get_item(Key={'user_email': userid})
+            item = results[0] ## TODO fix
             self.username = item['Item']['username']
             self.password_hash = item['Item']['password_hash']
 
@@ -142,39 +157,48 @@ class User(UserMixin):
         return check_password_hash(self.password_hash, password)
 
 ## Creates a new user, and returns False if unable to
-def new_user(userid, username, password):
-   # self.dynamodb = dynamodb
-    table = dynamodb.Table("User")
-    item = table.get_item(Key={'user_email':userid})
-    if 'Item' in item:
+def new_user(userid, username, password, phonenumber):
+    #self.dynamodb = dynamodb
+    #table = dynamodb.Table("User")
+    #item = table.get_item(Key={'user_email':userid})
+    #if 'Item' in item:
+    #    return False
+
+    conn = MySQLdb.connect(host = DB_HOSTNAME,
+                        user = DB_USERNAME,
+                        passwd = DB_PASSWORD,
+                        db = DB_NAME,
+                        port = 3306)
+
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM photogallerydb.photogallery2") ##Select Username from user_email
+    results = cursor.fetchall()
+
+    if results:
         return False
 
     password_hash = generate_password_hash(password)
 
-    table_item = {
-        'user_email': userid,
-        'username': username,
-        'password_hash' : password_hash,
-    }
+    
 
-    table.put_item(Item=table_item)
+    cursor.execute("INSERT INTO photogallerydb.User (Email, Username, Password, PhoneNumber) VALUES ("+
+                    "'"+str(userid)+"', '"+\
+                        str(username)+"', '"+\
+                        password_hash+"', '"+\
+                        str(phonenumber)+"';'")
+
+
+    conn.commit()
+    conn.close()
+    #table.put_item(Item=table_item)
     return True
-
 
 ### Routes ###
 
 #Homepage
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def home_page():
-    response = photo.scan()
-
-    items = response['Items']
-    #print(items)
-
-    display = "display: block;"
-    if not current_user:
-        display = "display: none;"
-    return render_template('index.html', photos=items, d=display)
+    return render_template('index.html')
 
 #Logout
 @app.route('/logout', methods=['GET', 'POST'])
@@ -187,42 +211,112 @@ def logout():
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
 def add_photo():
+    catagorys = ['Car', 'Motorcycle', 'Boat', 'Book', 'Funiture', 'Apartment', 'House', 'Trailer', 'Rental_Home', 'Air_BnB', 'Cleaning', 'Repairs', 'Transportation', 'Tutor', 'Delivery', 'Contract', 'Part-Time', 'Full-Time', 'Commission', 'Looking_For_Work', 'Religion', 'Sports', 'Events', 'Caretaker', 'Food']
     if request.method == 'POST':    
-        uploadedFileURL=''
-        file = request.files['imagefile']
-        title = request.form['title']
-        tags = request.form['tags']
-        description = request.form['description']
-
-        print title,tags,description
-        if file and allowed_file(file.filename):
-            filename = file.filename
-            filenameWithPath = os.path.join(UPLOAD_FOLDER, filename)
-            print filenameWithPath
-            file.save(filenameWithPath)            
-            uploadedFileURL = s3uploading(filename, filenameWithPath)
-            ExifData=getExifData(filenameWithPath)
-            print ExifData
-            ts=time.time()
-            timestamp = datetime.datetime.\
-                        fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-
-            photo.put_item(
-                Item={
-                    "PhotoID": str(int(ts*1000)),
-                    "CreationTime": timestamp,
-                    "Title": title,
-                    "Description": description,
-                    "Tags": tags,
-                    "URL": uploadedFileURL,
-                    "UserID": current_user.id,
-                    "ExifData": json.dumps(ExifData)
-                }
-            )
-
-        return redirect('/')
+        if request.form['catagory']:
+            return redirect('/add/<path:Item', Item = request.form['catagory'])
+        else:
+            return render_template('form.html', catagory=catagorys)
     else:
-        return render_template('form.html')
+        return render_template('form.html', catagory=catagorys)
+
+#Add Item page
+@app.route('/add/<path:Item>', methods=['GET', 'POST'])
+def add_item(Item):
+    
+
+    ## When reaching page, display a number of options designated by the object
+    ## Set values of different fields in the addItem.html, to hide or show the required fields
+
+    #Compare catagories, and set fields to 1 if needed. Rename
+
+    if request.method == 'POST' :
+        conn = conn = MySQLdb.connect (host = DB_HOSTNAME,
+                        user = DB_USERNAME,
+                        passwd = DB_PASSWORD,
+                        db = DB_NAME, 
+                        port = 3306)
+
+        cursor = conn.cursor ()
+
+        statement = ""
+
+        if catagoryA :
+            statement = ""
+        elif catagoryB :
+            statement = ""
+
+        cursor.execute(statement)
+        cursor.commit()
+        cursor.close()
+        ## Add item to databases
+
+        ## Redirect to home page
+
+    else :
+        #Products
+        if Item == 'Car':
+            return render_template("form_car.html")
+        elif Item == 'Boat':
+            return render_template("form_boat.html")
+        elif Item == 'Motorcycle':
+            return render_template("form_motor.html")
+        elif Item == 'Book':
+            return render_template("form_book.html")
+        elif Item == 'Furniture':
+            return render_template("form_furn.html")
+        #Housing
+        elif Item == 'Apartment':
+            return render_template("")
+        elif Item == 'House':
+            return render_template("")
+        elif Item == 'Trailer':
+            return render_template("")
+        elif Item == 'Rental_Home':
+            return render_template("")
+        elif Item == 'Air_BnB':
+            return render_template("")
+        #Services
+        elif Item == 'Cleaning':
+            return render_template("")
+        elif Item == 'Repairs':
+            return render_template("")
+        elif Item == 'Transportation':
+            return render_template("")
+        elif Item == 'Tutor':
+            return render_template("")
+        elif Item == 'Delivery':
+            return render_template("")
+        #Jobs
+        elif Item == 'Contract':
+            return render_template("")
+        elif Item == 'Part-Time':
+            return render_template("")
+        elif Item == 'Full-Time':
+            return render_template("")
+        elif Item == 'Commission':
+            return render_template("")
+        elif Item == 'Looking_For_Work':
+            return render_template("")
+        #Community
+        elif Item == 'Religion':
+            return render_template("")
+        elif Item == 'Sports':
+            return render_template("")
+        elif Item == 'Events':
+            return render_template("")
+        elif Item == 'Caretaker':
+            return render_template("")
+        elif Item == 'Food':
+            return render_template("")
+    
+
+    
+
+    return redirect('/')
+
+
+
 
 #Login page
 @app.route('/login', methods=['GET', 'POST'])
@@ -255,6 +349,8 @@ def register_page():
         password = request.form['password']
         confirm = request.form['confirm password']
 
+        ## May include more information like phone number or city. Information pending on that.
+
         if password == '' or confirm == '' or username == '':
             print("Missing field")
             return render_template('register.html')
@@ -274,6 +370,9 @@ def register_page():
 #View photo
 @app.route('/<int:photoID>', methods=['GET'])
 def view_photo(photoID):    
+
+    ##Gut to display item
+    
     response = photo.query(
             KeyConditionExpression=Key('PhotoID').eq(str(photoID))
     )
@@ -288,6 +387,8 @@ def view_photo(photoID):
 def search_page():
     query = request.args.get('query', None)    
 
+    #Adjust to fit new data.
+
     response= photo.scan(
         FilterExpression=Attr('Title').contains(str(query)) |
                         Attr('Description').contains(str(query)) |
@@ -297,6 +398,27 @@ def search_page():
     items = response['Items']
     return render_template('search.html', photos=items, 
                             searchquery=query)
+
+# View Catagory
+@app.route('/<path:Catagory>', methods=['GET'])
+def view_Catagory(Catagory):
+    print(Catagory)
+    ## Show all subcatagories
+    ## Show items in catagory, descending time order
+
+    ##return render_template('catagory.html'...)
+    return 0
+
+# View Subcatagory
+@app.route('/<path:Catagory>/<path:Subcatagory', methods=['GET'])
+def view_Subcatagory(Catagory, Subcatagory):
+    print(Catagory)
+    print(Subcatagory)
+
+    ##Show items in subcatagory, descending time order
+    
+    ##return render_template('subcatagory.html'...)
+    return 0
 
 if __name__ == '__main__':
     app.run(debug=True, host="172.31.28.76", port=5001)
