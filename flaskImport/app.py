@@ -211,96 +211,107 @@ def logout():
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
 def add_photo():
-
-    ## Change to ask the user what item they want to list
-
-    # TODO User choose object
-    
-    ## Redirect to approptite page
-
-    # TODO Redirect
-
+    catagorys = ['Car', 'Motorcycle', 'Boat', 'Book', 'Funiture', 'Apartment', 'House', 'Trailer', 'Rental_Home', 'Air_BnB', 'Cleaning', 'Repairs', 'Transportation', 'Tutor', 'Delivery', 'Contract', 'Part-Time', 'Full-Time', 'Commission', 'Looking_For_Work', 'Religion', 'Sports', 'Events', 'Caretaker', 'Food']
     if request.method == 'POST':    
-        uploadedFileURL=''
-        file = request.files['imagefile']
-        title = request.form['title']
-        tags = request.form['tags']
-        description = request.form['description']
-
-        print title,tags,description
-        if file and allowed_file(file.filename):
-            filename = file.filename
-            filenameWithPath = os.path.join(UPLOAD_FOLDER, filename)
-            print filenameWithPath
-            file.save(filenameWithPath)            
-            uploadedFileURL = s3uploading(filename, filenameWithPath)
-            ExifData=getExifData(filenameWithPath)
-            print ExifData
-            ts=time.time()
-            timestamp = datetime.datetime.\
-                        fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-
-            photo.put_item(
-                Item={
-                    "PhotoID": str(int(ts*1000)),
-                    "CreationTime": timestamp,
-                    "Title": title,
-                    "Description": description,
-                    "Tags": tags,
-                    "URL": uploadedFileURL,
-                    "UserID": current_user.id,
-                    "ExifData": json.dumps(ExifData)
-                }
-            )
-
-        return redirect('/')
+        if request.form['catagory']:
+            return redirect('/add/<path:Item', Item = request.form['catagory'])
+        else:
+            return render_template('form.html', catagory=catagorys)
     else:
-        return render_template('form.html')
+        return render_template('form.html', catagory=catagorys)
 
 #Add Item page
 @app.route('/add/<path:Item>', methods=['GET', 'POST'])
 def add_item(Item):
-    print(Item)
+    
 
     ## When reaching page, display a number of options designated by the object
     ## Set values of different fields in the addItem.html, to hide or show the required fields
 
-    a, b, c, d, e, f, g, h, i, j, k, l, m, n = 0
-
     #Compare catagories, and set fields to 1 if needed. Rename
 
-    if catagoryA:
-        a = 1
-    elif catagoryB:
-        b = 1
-    
-    # TODO set HTML fields
-
-    ## GET data from HTML page on submit
-
-    ## If missing fields, show error messages
-
-    conn = conn = MySQLdb.connect (host = DB_HOSTNAME,
+    if request.method == 'POST' :
+        conn = conn = MySQLdb.connect (host = DB_HOSTNAME,
                         user = DB_USERNAME,
                         passwd = DB_PASSWORD,
                         db = DB_NAME, 
                         port = 3306)
 
-    cursor = conn.cursor ()
+        cursor = conn.cursor ()
 
-    statement = ""
-
-    if catagoryA :
-        statement = ""
-    elif catagoryB :
         statement = ""
 
-    cursor.execute(statement)
-    cursor.commit()
-    cursor.close()
-    ## Add item to databases
+        if catagoryA :
+            statement = ""
+        elif catagoryB :
+            statement = ""
 
-    ## Redirect to home page
+        cursor.execute(statement)
+        cursor.commit()
+        cursor.close()
+        ## Add item to databases
+
+        ## Redirect to home page
+
+    else :
+        #Products
+        if Item == 'Car':
+            return render_template("form_car.html")
+        elif Item == 'Boat':
+            return render_template("form_boat.html")
+        elif Item == 'Motorcycle':
+            return render_template("form_motor.html")
+        elif Item == 'Book':
+            return render_template("form_book.html")
+        elif Item == 'Furniture':
+            return render_template("form_furn.html")
+        #Housing
+        elif Item == 'Apartment':
+            return render_template("")
+        elif Item == 'House':
+            return render_template("")
+        elif Item == 'Trailer':
+            return render_template("")
+        elif Item == 'Rental_Home':
+            return render_template("")
+        elif Item == 'Air_BnB':
+            return render_template("")
+        #Services
+        elif Item == 'Cleaning':
+            return render_template("")
+        elif Item == 'Repairs':
+            return render_template("")
+        elif Item == 'Transportation':
+            return render_template("")
+        elif Item == 'Tutor':
+            return render_template("")
+        elif Item == 'Delivery':
+            return render_template("")
+        #Jobs
+        elif Item == 'Contract':
+            return render_template("")
+        elif Item == 'Part-Time':
+            return render_template("")
+        elif Item == 'Full-Time':
+            return render_template("")
+        elif Item == 'Commission':
+            return render_template("")
+        elif Item == 'Looking_For_Work':
+            return render_template("")
+        #Community
+        elif Item == 'Religion':
+            return render_template("")
+        elif Item == 'Sports':
+            return render_template("")
+        elif Item == 'Events':
+            return render_template("")
+        elif Item == 'Caretaker':
+            return render_template("")
+        elif Item == 'Food':
+            return render_template("")
+    
+
+    
 
     return redirect('/')
 

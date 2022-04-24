@@ -1,0 +1,35 @@
+<html>
+    <head>
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>Photo Gallery</title>
+		<meta name="viewport" content="width=device-width, 
+		minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<link href="assets/plugins/bootstrap/css/bootstrap.min.css" 
+		rel="stylesheet" type="text/css" />
+		<link href="assets/css/global.css" rel="stylesheet" 
+		type="text/css" />
+		<script type="text/javascript" src="assets/plugins/jquery.min.js">
+        </script>
+	</head>
+    <body><div class="wrapper">
+        <div class="bg-color-sky-light">
+          <br>
+          <center>
+            <h2>Photo Gallery</h2>
+            <br>
+            <a href="/">Home</a>
+          </center>
+          <div class="content-sm container">
+              <div class="dropdown">
+                <form method = "POST" action="/add">
+                    <select name="catagory" method="GET">
+                        {% for cat in catagory %}
+                        <option value="{{cat}}">{{cat}}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class = "btn-base-bg btn-base-sm radius-3">Submit</button>
+                </form>
+              </div>
+          </div>
+</html>
