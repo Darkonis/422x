@@ -39,7 +39,7 @@
               <div class="blog-grid-content">
                 <form method='get' action="/search">
                   <input type="text" name="query" id="query" 
-                  class="form-control" placeholder="Search photos">
+                  class="form-control" placeholder="Search items">
               </div>
             </div>
           </div>
@@ -76,16 +76,55 @@
             {% endfor %}-->
 			<div class="cbp-item idea web-design theme-portfolio-item-v2 
               theme-portfolio-item-xs">
-				<h2><a href="/products">Products</h2>
-				<p><a href="/products/car">Car/Truck</a></p>
-				<p><a href="/products/motorcycle">Motorcycle</a></p>
-				<p><a href="/products/boat">Boat</a></p>
-				<p><a href="/products/book">Book</a></p>
-				<p><a href="/products/furniture">Furniture</a></p>
-				<h2><a href="/housing">Housing</h2>
-				<h2><a href="/services">Services</h2>
-				<h2><a href="/jobs">Jobs</h2>
-				<h2><a href="/community">Community</h2>
+				<table class="content-sm container">
+					<tr>
+						<th><h2><a href="/products">Products</h2></th>
+						<th><h2><a href="/housing">Housing</h2></th>
+						<th><h2><a href="/services">Services</h2></th>
+						<th><h2><a href="/jobs">Jobs</h2></th>
+						<th><h2><a href="/community">Community</h2></th>
+					</tr>
+					<tr>
+						<th><p><a href="/products/car">Car/Truck</a></p></th>
+						<th><p><a href="/housing/apartment">Apartment</a></p></th>
+						<th><p><a href="/services/clean">Clean</a></p></th>
+						<th><p><a href="/jobs/contract">Contract</a></p></th>
+						<th><p><a href="/community/religious">Religious</a></p></th>
+						<th></th>
+					</tr>
+					<tr>
+						<th><p><a href="/products/motorcycle">Motorcycle</a></p></th>
+						<th><p><a href="/housing/house">House</a></p></th>
+						<th><p><a href="/services/fix">Fix</a></p></th>
+						<th><p><a href="/jobs/part">Part time</a></p></th>
+						<th><p><a href="/community/sport">Sport</a></p></th>
+						<th></th>
+					</tr>
+					<tr>
+						<th><p><a href="/products/boat">Boat</a></p></th>
+						<th><p><a href="/housing/trailer">Trailer</a></p></th>
+						<th><p><a href="/services/transportation">Transportation</a></p></th>
+						<th><p><a href="/jobs/full">Full time</a></p></th>
+						<th><p><a href="/community/event">Event</a></p></th>
+						<th></th>
+					</tr>
+					<tr>
+						<th><p><a href="/products/book">Book</a></p></th>
+						<th><p><a href="/housing/rental">Rental</a></p></th>
+						<th><p><a href="/services/tutor">Tutor</a></p></th>
+						<th><p><a href="/jobs/commission">Commission</a></p></th>
+						<th><p><a href="/community/caretaker">Caretaker</a></p></th>
+						<th></th>
+					</tr>
+					<tr>
+						<th><p><p><a href="/products/furniture">Furniture</a></p></th>
+						<th><p><a href="/housing/air">Air BnB</a></p></th>
+						<th><p><a href="/services/delivery">Delivery</a></p></th>
+						<th><p><a href="/jobs/find">Looking for work</a></p></th>
+						<th><p><a href="/community/food">Food</a></p></th>
+						<th></th>
+					</tr>
+				</table>
 			</div>
           </div>
         </div>
