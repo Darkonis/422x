@@ -126,9 +126,9 @@ def load_user(user_id):
 class User(UserMixin):
     ## TODO
     def __init__(self, userid, username=None):
-        self.dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
-                         aws_secret_access_key=AWS_SECRET_KEY,
-                         region_name=REGION)
+        ##self.dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
+                         ##aws_secret_access_key=AWS_SECRET_KEY,
+                         ##region_name=REGION)
         conn = MySQLdb(host = DB_HOSTNAME,
                     user = DB_USERNAME,
                     passwd = DB_PASSWORD,
@@ -157,7 +157,7 @@ class User(UserMixin):
         return check_password_hash(self.password_hash, password)
 
 ## Creates a new user, and returns False if unable to
-def new_user(userid, username, password):
+def new_user(userid, username, password, phonenumber):
     #self.dynamodb = dynamodb
     #table = dynamodb.Table("User")
     #item = table.get_item(Key={'user_email':userid})
@@ -179,19 +179,13 @@ def new_user(userid, username, password):
 
     password_hash = generate_password_hash(password)
 
-    table_item = {
-        'user_email': userid,
-        'username': username,
-        'password_hash' : password_hash,
-    }
+    
 
-    cursor.execute("INSERT INTO photogallerydb.User (CreationTime,Title,Decription,Tags,URL,EXIF) VALUES ("+
-                    "'"+str(timestamp)+"', '"+\
-                        title+"', '"+\
-                        description+"', '"+\
-                        tags+"', '"+\
-                        uploadedFileURL+"', '"+\
-                        json.dumps(ExifData)+"');")
+    cursor.execute("INSERT INTO photogallerydb.User (Email, Username, Password, PhoneNumber) VALUES ("+
+                    "'"+str(userid)+"', '"+\
+                        str(username)+"', '"+\
+                        password_hash+"', '"+\
+                        str(phonenumber)+"';'")
 
 
     conn.commit()
@@ -202,21 +196,9 @@ def new_user(userid, username, password):
 ### Routes ###
 
 #Homepage
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def home_page():
-    response = photo.scan()  #Replace with all catagories and subcatagories
-
-    conn = MySQLdb
-
-    items = response['Items']  #Break it up into catagories and subcatagories
-    #print(items)
-
-    ## Two different display options, probably a nested loop of some kind
-
-    display = "display: block;"
-    if not current_user:
-        display = "display: none;"
-    return render_template('index.html', photos=items, d=display)
+    return render_template('index.html')
 
 #Logout
 @app.route('/logout', methods=['GET', 'POST'])
