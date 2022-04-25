@@ -129,7 +129,7 @@ class User(UserMixin):
         ##self.dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
                          ##aws_secret_access_key=AWS_SECRET_KEY,
                          ##region_name=REGION)
-        conn = MySQLdb(host = DB_HOSTNAME,
+        conn = MySQLdb.connect(host = DB_HOSTNAME,
                     user = DB_USERNAME,
                     passwd = DB_PASSWORD,
                     db = DB_NAME,
@@ -140,14 +140,22 @@ class User(UserMixin):
         ##self.table = self.dynamodb.Table('User')
         ##self.id = userid
         ##item = self.table.get_item(Key={'user_email': userid})
-
-        cursor.execute("SELECT * FROM photogallerydb.User WHERE Username="+str(userid)+";")
-
+        print("SELECT * FROM photogallerydb.User WHERE Username="+str(username)+";")
+        cursor.execute("SELECT * FROM photogallerydb.User WHERE Username=%(username)s;",{
+            'username':str(username)
+            })
         results = cursor.fetchall()
-
+        print( results)
         if results:
+            print("\n\n\n\n")
+            print(results)
+            item = results[0] ## TODO fix
+            print(item)
             self.username = username
+            self.user_id=item[0]
+            self.password_hash = item[3]
         else:
+            print(results)
             item = results[0] ## TODO fix
             self.username = item['Item']['username']
             self.password_hash = item['Item']['password_hash']
@@ -155,7 +163,9 @@ class User(UserMixin):
     ## Compares the password hash when logging in
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
-
+    
+    def get_id(self):
+        return(self.user_id)
 ## Creates a new user, and returns False if unable to
 def new_user(userid, username, password, phonenumber):
     #self.dynamodb = dynamodb
@@ -171,7 +181,9 @@ def new_user(userid, username, password, phonenumber):
                         port = 3306)
 
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM photogallerydb.photogallery2") ##Select Username from user_email
+    cursor.execute("SELECT * FROM photogallerydb.User WHERE Username=%(username)s;",{
+            'username':str(username)
+            })
     results = cursor.fetchall()
 
     if results:
@@ -180,12 +192,12 @@ def new_user(userid, username, password, phonenumber):
     password_hash = generate_password_hash(password)
 
     
+    print(results)
+    
+    sql_insert= """INSERT INTO photogallerydb.User (Email, Username, Password, PhoneNumber) VALUES (%s,%s,%s,%s);"""
+    d_tup= (userid,username,password_hash,phonenumber)
+    cursor.execute(sql_insert,d_tup)
 
-    cursor.execute("INSERT INTO photogallerydb.User (Email, Username, Password, PhoneNumber) VALUES ("+
-                    "'"+str(userid)+"', '"+\
-                        str(username)+"', '"+\
-                        password_hash+"', '"+\
-                        str(phonenumber)+"';'")
 
 
     conn.commit()
@@ -331,8 +343,9 @@ def login():
             print("No password")
             return redirect('/login')
 
-        user = User(userid)
+        user = User(userid,username)
         if user.verify_password(password):
+            print("its working to here")
             login_user(user)
             return redirect('/')
         else:
@@ -346,6 +359,7 @@ def register_page():
     if request.method == 'POST':
         userid = request.form["email"]
         username = request.form['username']
+        phone = request.form["phone"]
         password = request.form['password']
         confirm = request.form['confirm password']
 
@@ -360,7 +374,7 @@ def register_page():
             print("Error")
             return render_template('register.html')
         else:
-            if not new_user(userid, username, password):
+            if not new_user(userid, username, password,phone):
                 render_template('register.html')
             user = User(userid, username)
             return redirect('/login')
@@ -410,15 +424,15 @@ def view_Catagory(Catagory):
     return 0
 
 # View Subcatagory
-@app.route('/<path:Catagory>/<path:Subcatagory', methods=['GET'])
-def view_Subcatagory(Catagory, Subcatagory):
-    print(Catagory)
-    print(Subcatagory)
+#@app.route('/<path:Catagory>/<path:Subcatagory', methods=['GET'])
+#def view_Subcatagory(Catagory, Subcatagory):
+ #   print(Catagory)
+  #  print(Subcatagory)
 
     ##Show items in subcatagory, descending time order
     
     ##return render_template('subcatagory.html'...)
-    return 0
+   # return 0
 
 if __name__ == '__main__':
     app.run(debug=True, host="172.31.28.76", port=5001)

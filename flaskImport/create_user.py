@@ -11,6 +11,7 @@ conn = MySQLdb.connect(host = "mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amaz
 
 cursor = conn.cursor ()
 cursor.execute ("SELECT VERSION()")
+cursor.execute ("DROP TABLE User;")
 
 cursor.execute ("CREATE TABLE User ( \
     UID int PRIMARY KEY NOT NULL AUTO_INCREMENT, \
