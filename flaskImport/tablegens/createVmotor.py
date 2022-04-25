@@ -9,9 +9,9 @@ conn = MySQLdb.connect(host = "mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amaz
                         port = 3306)
 
 cursor = conn.cursor ()
-cursor.exectue ("SELECT VERSION()")
+cursor.execute ("SELECT VERSION()")
 
-cursor.exectue ("CREATE TABLE motorcycles ( \
+cursor.execute ("CREATE TABLE motorcycles ( \
     ListID int PRIMARY KEY NOT NULL AUTO_INCREMENT, \
     UID INTEGER NOT NULL, \
     FORIEGN KEY(UID) REFERENCES Users(UID), \
