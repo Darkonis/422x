@@ -140,7 +140,6 @@ class User(UserMixin):
         ##self.table = self.dynamodb.Table('User')
         ##self.id = userid
         ##item = self.table.get_item(Key={'user_email': userid})
-        print("SELECT * FROM photogallerydb.User WHERE Username="+str(username)+";")
         cursor.execute("SELECT * FROM photogallerydb.User WHERE Username=%(username)s;",{
             'username':str(username)
             })
@@ -345,7 +344,6 @@ def login():
 
         user = User(userid,username)
         if user.verify_password(password):
-            print("its working to here")
             login_user(user)
             return redirect('/')
         else:
