@@ -9,18 +9,17 @@ conn = MySQLdb.connect(host = "mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amaz
                         port = 3306)
 
 cursor = conn.cursor ()
-cursor.exectue ("SELECT VERSION()")
+cursor.execute ("SELECT VERSION()")
 
-cursor.exectue ("CREATE TABLE books ( \
+cursor.execute ("CREATE TABLE tutoring ( \
     ListID int PRIMARY KEY NOT NULL AUTO_INCREMENT, \
     UID INTEGER NOT NULL, \
     FORIEGN KEY(UID) REFERENCES Users(UID), \
-    Year int NOT NULL, \
-    Edition TEXT NOT NULL, \
-    Author TEXT NOT NULL, \
+    Availability TEXT NOT NULL, \
+    Company TEXT NOT NULL, \
+    Boss TEXT NOT NULL, \
     Type TEXT NOT NULL, \
-    Condit TEXT NOT NULL, \
-    Price int NOT NULL, \
+    Wage int NOT NULL, \
     Description TEXT NOT NULL, \
     City TEXT NOT NULL, \
     Phone TEXT NOT NULL \

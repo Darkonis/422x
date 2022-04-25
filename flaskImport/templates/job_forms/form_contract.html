@@ -22,15 +22,15 @@
       <center>
         <h2>Project Phase 4</h2>
         <br>
-        <a href="/">Home</a> | <a href="/add">Add</a>
+        <a href="/">Home</a> | <a href="/add">Add item</a>
       </center>
       <div class="content-sm container">
         <div class="row">
           <div class="col-md-12 md-margin-b-50">
             <article class="blog-grid margin-b-30">
               <div class="blog-grid-content">
-                <h2 class="blog-grid-title-lg">Add Motorcycle</h2>
-                <form method='post' action="/addmotor" 
+                <h2 class="blog-grid-title-lg">Add Contract</h2>
+                <form method='post' action="/add/Contract" 
                     enctype="multipart/form-data">
                   <p>Title
 				  <input type="text" name="title" id="title" 
@@ -42,32 +42,33 @@
 				  <p>Upload Photo 
 				  <input type="file" name="imagefile" 
                     id="imagefile" class="form-control"></p>
-                  <p>Year Built
-				  <input type="text" name="year" id="year" 
-                    class="form-control" placeholder="Year Built">
+                  <p>Term
+				  <input type="text" name="term" id="term" 
+                    class="form-control" placeholder="Term">
                   </p>
-				  <p>Make/Model
-				  <input type="text" name="make" id="make" 
-                    class="form-control" placeholder="Make/Model">
+				  <p>Company
+				  <input type="text" name="company" id="company" 
+                    class="form-control" placeholder="Company">
                   </p>
-				  <p>Color
-				  <input type="text" name="color" id="color" 
-                    class="form-control" placeholder="Color">
+				  <p>Experience
+				  <input type="text" name="experience" id="experience"
+                    class="form-control" placeholder="Experience">
                   </p>
 				  <p>Type
 				  <input type="text" name="type" id="type" 
                     class="form-control" placeholder="Type">
                   </p>
-				  <p>Condition<input type="text" name="condition" id="condition" 
-                    class="form-control" placeholder="Condition">
+				  <p>Wage Type
+				  <input type="text" name="wagetype" id="wagetype" 
+                    class="form-control" placeholder="Wage Type">
                   </p>
-				  <p>Miles
-				  <input type="text" name="miles" id="miles" 
-                    class="form-control" placeholder="Miles">
+                  <p>Rate
+				  <input type="text" name="rate" id="rate" 
+                    class="form-control" placeholder="Rate">
                   </p>
-				  <p>Price
-				  <input type="text" name="price" id="price" 
-                    class="form-control" placeholder="Price">
+                  <p>Remote
+				  <input type="text" name="remote" id="remote" 
+                    class="form-control" placeholder="Remote">
                   </p>
 				  <p>City
 				  <input type="text" name="city" id="city" 
@@ -77,6 +78,7 @@
 				  <input type="text" name="phone" id="phone" 
                     class="form-control" placeholder="Phone Number">
                   </p>
+>>>>>>> refs/remotes/origin/main
                   <button type="submit" class="btn-base-bg 
                     btn-base-sm radius-3">Submit</button>
               </div>

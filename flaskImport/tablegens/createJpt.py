@@ -9,19 +9,18 @@ conn = MySQLdb.connect(host = "mysql-db-instance.cm4jqnr18t4s.us-east-2.rds.amaz
                         port = 3306)
 
 cursor = conn.cursor ()
-cursor.exectue ("SELECT VERSION()")
+cursor.execute ("SELECT VERSION()")
 
-cursor.exectue ("CREATE TABLE boats ( \
+cursor.execute ("CREATE TABLE parttime ( \
     ListID int PRIMARY KEY NOT NULL AUTO_INCREMENT, \
     UID INTEGER NOT NULL, \
     FORIEGN KEY(UID) REFERENCES Users(UID), \
-    Year int NOT NULL, \
-    MakeModel TEXT NOT NULL, \
-    Color TEXT NOT NULL, \
+    WeeklyHours TEXT NOT NULL, \
+    Company TEXT NOT NULL, \
+    Experience TEXT NOT NULL, \
     Type TEXT NOT NULL, \
-    Condit TEXT NOT NULL, \
-    Price int NOT NULL, \
-    Description TEXT NOT NULL, \
+    Rate int NOT NULL, \
+    Remote int NOT NULL, \
     City TEXT NOT NULL, \
     Phone TEXT NOT NULL \
 );")
