@@ -14,7 +14,6 @@ cursor.execute ("SELECT VERSION()")
 cursor.execute ("CREATE TABLE food ( \
     ListID int PRIMARY KEY NOT NULL AUTO_INCREMENT, \
     UID INTEGER NOT NULL, \
-    FORIEGN KEY(UID) REFERENCES Users(UID), \
     AvailableTimes TEXT NOT NULL, \
     Organization TEXT NOT NULL, \
     Boss TEXT NOT NULL, \

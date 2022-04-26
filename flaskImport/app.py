@@ -118,14 +118,16 @@ login_manager.login_view = 'login'
 @login_manager.user_loader
 def load_user(user_id):
     try:
-        return User(user_id)
+        user= User(user_id)
+
+        return user
     except:
         return None
 
 ## Defines the user class and assigns relevant information
 class User(UserMixin):
     ## TODO
-    def __init__(self, userid, username=None):
+    def __init__(self, Username):
         ##self.dynamodb = boto3.resource('dynamodb', aws_access_key_id=AWS_ACCESS_KEY,
                          ##aws_secret_access_key=AWS_SECRET_KEY,
                          ##region_name=REGION)
@@ -141,20 +143,16 @@ class User(UserMixin):
         ##self.id = userid
         ##item = self.table.get_item(Key={'user_email': userid})
         cursor.execute("SELECT * FROM photogallerydb.User WHERE Username=%(username)s;",{
-            'username':str(username)
+            'username':str(Username)
             })
         results = cursor.fetchall()
-        print( results)
         if results:
-            print("\n\n\n\n")
-            print(results)
             item = results[0] ## TODO fix
-            print(item)
-            self.username = username
-            self.user_id=item[0]
+            self.user_id=Username
+            self.id=item[0]
+            self.phone=item[4]
             self.password_hash = item[3]
         else:
-            print(results)
             item = results[0] ## TODO fix
             self.username = item['Item']['username']
             self.password_hash = item['Item']['password_hash']
@@ -189,9 +187,6 @@ def new_user(userid, username, password, phonenumber):
         return False
 
     password_hash = generate_password_hash(password)
-
-    
-    print(results)
     
     sql_insert= """INSERT INTO photogallerydb.User (Email, Username, Password, PhoneNumber) VALUES (%s,%s,%s,%s);"""
     d_tup= (userid,username,password_hash,phonenumber)
@@ -227,12 +222,13 @@ def add_photo():
         if request.form['catagory']:
             return redirect('/add/<path:Item', Item = request.form['catagory'])
         else:
-            return render_template('form.html', catagory=catagorys)
+            return render_template('/vehicle_forms/form_car.html', catagory=catagorys)
     else:
-        return render_template('form.html', catagory=catagorys)
+        return render_template('/vehicle_forms/form_car.html', catagory=catagorys)
 
 #Add Item page
 @app.route('/add/<path:Item>', methods=['GET', 'POST'])
+@login_required
 def add_item(Item):
     
 
@@ -240,8 +236,9 @@ def add_item(Item):
     ## Set values of different fields in the addItem.html, to hide or show the required fields
 
     #Compare catagories, and set fields to 1 if needed. Rename
-
+    
     if request.method == 'POST' :
+        user=current_user
         conn = conn = MySQLdb.connect (host = DB_HOSTNAME,
                         user = DB_USERNAME,
                         passwd = DB_PASSWORD,
@@ -251,27 +248,54 @@ def add_item(Item):
         cursor = conn.cursor ()
 
         statement = ""
-
-        if catagoryA :
-            statement = ""
+        d_tup = ()
+        if Item == 'Car' or Item == 'car' :
+            print("so far")
+            
+            #conn.query('SET GLOBAL connect_timeout=28800')
+            #conn.query('SET GLOBAL interactive_timeout=28800')
+            #conn.query('SET GLOBAL wait_timeout=28800')
+            #cursor.execute('SET statement_timeout TO 0')
+           # print(cursor.execute("SELECT * FROM photogallerydb.User"))
+           # data=cursor.fetchall()
+           # for row in data:
+            #    print(row)
+            statement= ("INSERT INTO photogallerydb.cars (Title, UID, Year, Price,Miles,MakeModel, Color, Type, Condit, Description, City, Phone)" 
+                    "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);")
+            title = request.form["title"]
+            i=user.id
+            year = int(request.form['year'])
+            price = int(request.form["price"])
+            miles =  int(request.form["miles"])
+            make= request.form["make"]
+            color = request.form["color"]
+            typ=  request.form["type"]
+            condit =  request.form["condit"]
+            description=request.form["description"]
+            city = request.form["city"]
+            phone = user.phone
+            d_tup= (title,i,year,price,miles,make,color,typ,condit,description,city,phone)
+            print(statement,d_tup)
+            print("\n\n\n")
+            print(cursor.execute("SELECT * FROM photogallerydb.User"))
+            cursor.execute(statement,d_tup)
+            print("1 record inserted, ID:", cursor.lastrowid)
+            #cursor.fetchone()
         elif catagoryB :
             statement = ""
-
-        cursor.execute(statement)
-        cursor.commit()
+        conn.commit()
         cursor.close()
         ## Add item to databases
 
-        ## Redirect to home page
-
+        return redirect('/')
     else :
         #Products
         if Item == 'Car':
-            return render_template("form_car.html")
+            return render_template("vehicle_forms/form_car.html")
         elif Item == 'Boat':
-            return render_template("form_boat.html")
+            return render_template("vehicle_forms/form_boat.html")
         elif Item == 'Motorcycle':
-            return render_template("form_motor.html")
+            return render_template("vehicle_forms/form_motor.html")
         elif Item == 'Book':
             return render_template("form_book.html")
         elif Item == 'Furniture':
@@ -342,7 +366,7 @@ def login():
             print("No password")
             return redirect('/login')
 
-        user = User(userid,username)
+        user = User(username)
         if user.verify_password(password):
             login_user(user)
             return redirect('/')
@@ -374,7 +398,7 @@ def register_page():
         else:
             if not new_user(userid, username, password,phone):
                 render_template('register.html')
-            user = User(userid, username)
+            #user = User(username)
             return redirect('/login')
     else:
         return render_template('register.html')
@@ -411,6 +435,29 @@ def search_page():
     return render_template('search.html', photos=items, 
                             searchquery=query)
 
+
+@app.route('/res/<path:Item>', methods=['GET'])
+def display(Item):
+    user=current_user
+    conn = conn = MySQLdb.connect (host = DB_HOSTNAME,
+                    user = DB_USERNAME,
+                    passwd = DB_PASSWORD,
+                    db = DB_NAME,
+                    port = 3306)
+
+    cursor = conn.cursor ()
+    if Item == 'car':
+        statement = "SELECT * FROM photogallerydb.cars"
+        cursor.execute(statement)
+        data=cursor.fetchall()
+        List = []
+        for row in data:
+            i = {}
+            i['id'] = row[0]
+            i['Title'] = row[1]
+            List.append(i)
+            print row
+    return render_template("list.html", items=List)
 # View Catagory
 @app.route('/<path:Catagory>', methods=['GET'])
 def view_Catagory(Catagory):
